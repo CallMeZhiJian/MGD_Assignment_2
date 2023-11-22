@@ -5,94 +5,80 @@ using UnityEngine.XR.ARFoundation;
 using TMPro;
 using UnityEngine.UI;
 
-public class OnDetect : MonoBehaviour
+public class GameManager : MonoBehaviour
 {
+    //Ball Spawning related
     [SerializeField]
     GameObject arCamera;
-
     [SerializeField]
     ARTrackedImageManager m_TrackedImageManager;
-
     [SerializeField]
     private GameObject BallPrefab;
-
     private GameObject BallSpawned;
-
     private float distance = 0.5f;
+    private Rigidbody rb;
 
+    //Ball throwing related
     private float startTime, endTime, swipeDistance, swipeTime;
     private Vector2 startPos, endPos;
 
     private float ballVelocity;
     private float ballSpeed;
     public float maxBallSpeed;
-    private Vector3 angle, ballPosition;
+    private Vector3 angle;
 
-    private bool throwing;
+    public static bool throwing;
 
-    private Rigidbody rb;
-
-    public TextMeshProUGUI DebugText;
+    //UI related
     public Slider slider;
-    private int count;
-    
+    public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI streakText;
+    public TextMeshProUGUI highestStreakText;
+
+    private int streak;
+    private int highestStreak;
+    private int point;
+    public static bool getPoint;
 
     // Start is called before the first frame update
     void Start()
     {
-        BallSpawned = Instantiate(BallPrefab, Camera.main.transform.position + Vector3.forward * distance, Quaternion.identity);
+        distance = slider.value;
 
-        BallSpawned.transform.position = arCamera.transform.position + arCamera.transform.forward * distance;
+        point = 0;
+        streak = 0;
+        highestStreak = 0;
+        scoreText.text = "Point: " + point;
+        streakText.text = "Streak: " + streak;
+        highestStreakText.text = "Highest Streak: " + highestStreak;
 
-        BallSpawned.transform.SetParent(arCamera.transform);
-
-        BallSpawned.transform.localPosition = Vector3.forward * distance;
-
-        rb = BallSpawned.GetComponent<Rigidbody>();
-
-        ballPosition = BallSpawned.transform.position;
+        CreateBall();
 
         ResetBall();
     }
 
-    public void ResetBall()
-    {
-        startPos = Vector2.zero;
-        
-        endPos = Vector2.zero;
-        
-        angle = Vector3.zero;
-        
-        ballSpeed = 0;
-        
-        startTime = 0;
-        
-        endTime = 0;
-        
-        swipeDistance = 0;
-        
-        swipeTime = 0;
-        
-        throwing = false;
-
-        rb.velocity = Vector3.zero;
-        
-        rb.useGravity = false;
-
-        BallSpawned.transform.position = arCamera.transform.position + arCamera.transform.forward * distance;
-
-        BallSpawned.transform.SetParent(arCamera.transform);
-
-        BallSpawned.transform.localPosition = Vector3.forward * distance;
-
-        count++;
-        DebugText.text = count.ToString();
-    }
-
-
     // Update is called once per frame
     void Update()
     {
+        if (getPoint)
+        {
+            point++;
+            streak++;
+            scoreText.text = "Point: " + point;
+            streakText.text = "Streak: " + streak;
+
+            Destroy(BallSpawned, 1f);
+            Invoke("CreateBall", 1f);
+
+            getPoint = false;
+        }
+
+        if(streak >= highestStreak)
+        {
+            highestStreak = streak;
+            highestStreakText.text = "Highest Streak: " + highestStreak;
+        }
+
         if (Input.touchCount > 0)
         {
             if (throwing)
@@ -125,17 +111,40 @@ public class OnDetect : MonoBehaviour
                 }   
             }
         }
-        //else
-        //{
-        //    if (throwing)
-        //    {
-        //        return;
-        //    }
-        //    else
-        //    {
-        //        BallSpawned.transform.position = arCamera.transform.position + arCamera.transform.forward * distance;
-        //    }  
-        //}
+    }
+
+    public void ResetBall()
+    {
+        startPos = Vector2.zero;
+
+        endPos = Vector2.zero;
+
+        angle = Vector3.zero;
+
+        ballSpeed = 0;
+
+        startTime = 0;
+
+        endTime = 0;
+
+        swipeDistance = 0;
+
+        swipeTime = 0;
+
+        throwing = false;
+
+        rb.velocity = Vector3.zero;
+
+        rb.useGravity = false;
+
+        BallSpawned.transform.position = arCamera.transform.position + arCamera.transform.forward * distance;
+
+        BallSpawned.transform.SetParent(arCamera.transform);
+
+        BallSpawned.transform.localPosition = Vector3.forward * distance;
+
+        streak = 0;
+        streakText.text = "Streak: " + streak;
     }
 
     void CalSpeed()
@@ -164,6 +173,22 @@ public class OnDetect : MonoBehaviour
 
         swipeTime = 0;
     }
+
+    public void CreateBall()
+    {
+        BallSpawned = Instantiate(BallPrefab, Camera.main.transform.position + new Vector3(0, -1, 1) * distance, Quaternion.identity);
+
+        BallSpawned.transform.position = arCamera.transform.position + arCamera.transform.forward * distance;
+
+        BallSpawned.transform.SetParent(arCamera.transform);
+
+        BallSpawned.transform.localPosition = Vector3.forward * distance;
+
+        rb = BallSpawned.GetComponent<Rigidbody>();
+
+        throwing = false;
+    }
+
     public void UpdateBall()
     {
         distance = slider.value;
