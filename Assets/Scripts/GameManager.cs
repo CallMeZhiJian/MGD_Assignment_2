@@ -5,7 +5,7 @@ using UnityEngine.XR.ARFoundation;
 using TMPro;
 using UnityEngine.UI;
 
-public class GameManager : MonoBehaviour
+public class GameManager : UIManager
 {
     //Ball Spawning related
     [SerializeField]
@@ -34,11 +34,14 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI streakText;
     public TextMeshProUGUI highestStreakText;
+    public GameObject findBasketTotuial;
+    public GameObject swipeTutorial;
 
     private int streak;
     private int highestStreak;
     private int point;
     public static bool getPoint;
+    private bool isStarted;
 
     // Start is called before the first frame update
     void Start()
@@ -55,11 +58,41 @@ public class GameManager : MonoBehaviour
         CreateBall();
 
         ResetBall();
+
+        
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (m_TrackedImageManager.trackables.count > 0)
+        {
+            findBasketTotuial.SetActive(false);
+            if (!isStarted)
+            {
+                swipeTutorial.SetActive(true);
+                isStarted = true;
+            }   
+        }
+
+        if (AudioManager.instance._BGMSource.mute)
+        {
+            BGM_Checkmark.SetActive(false);
+        }
+        else
+        {
+            BGM_Checkmark.SetActive(true);
+        }
+
+        if (AudioManager.instance._SFXSource.mute)
+        {
+            SFX_Checkmark.SetActive(false);
+        }
+        else
+        {
+            SFX_Checkmark.SetActive(true);
+        }
+
         if (getPoint)
         {
             point++;
@@ -83,6 +116,7 @@ public class GameManager : MonoBehaviour
         {
             if (throwing)
             {
+                swipeTutorial.SetActive(false);
                 return;
             }
 
@@ -115,6 +149,8 @@ public class GameManager : MonoBehaviour
 
     public void ResetBall()
     {
+        AudioManager.instance.PlaySFX("JiSFX");
+
         startPos = Vector2.zero;
 
         endPos = Vector2.zero;

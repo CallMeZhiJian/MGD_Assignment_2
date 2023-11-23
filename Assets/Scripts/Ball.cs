@@ -10,6 +10,7 @@ public class Ball : MonoBehaviour
         {
             if (GameManager.throwing)
             {
+                AudioManager.instance.PlaySFX("JinitaimeiSFX");
                 GameManager.getPoint = true;
             }
         }
